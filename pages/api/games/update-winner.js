@@ -1,32 +1,37 @@
 // pages/api/games/update-winner.js
+import db from '@/db/db';
+
+
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { gameId, winner } = req.body;
 
-    // Validate the incoming data
-    if (typeof gameId !== 'number' || (winner !== 0 && winner !== 1)) {
-      return res.status(400).json({ message: 'Invalid data' });
+    if (winner !== 0 && winner !== 1) {
+      return res.status(400).json({ message: 'Invalid winner value' });
     }
 
     try {
-      // Example database update, adjust this for your actual DB method
-      const result = await db.query(
-        'UPDATE games SET winner = $1 WHERE gameId = $2 RETURNING *',
-        [winner, gameId]
-      );
+      // Update the winner in the correct table ('season_schedule')
+      const updatedGame = await updateGameWinner(gameId, winner);
 
-      // If the game wasn't found or updated
-      if (result.rowCount === 0) {
-        return res.status(404).json({ message: 'Game not found' });
-      }
-
-      const updatedGame = result.rows[0];
-      res.status(200).json(updatedGame);  // Send back the updated game data
+      // Return the updated game data
+      res.status(200).json(updatedGame);
     } catch (error) {
-      console.error('Database error:', error);
-      res.status(500).json({ message: 'Failed to update winner' });
+      console.error("Error updating winner in database:", error);
+      res.status(500).json({ message: 'Failed to update winner', error: error.message });
     }
   } else {
-    res.status(405).json({ message: 'Method Not Allowed' }); // Handle non-POST requests
+    res.status(405).json({ message: 'Method Not Allowed' });
+  }
+}
+
+// Example of the DB update function (adjust it based on your database)
+async function updateGameWinner(gameId, winner) {
+  try {
+    const result = await db.prepare('UPDATE season_schedule SET winner = ? WHERE gameId = ? RETURNING *').run(winner, gameId);
+    return result;
+  } catch (error) {
+    console.error('Error during database update:', error);
+    throw error;  // This will be caught by the catch block in the handler
   }
 }
