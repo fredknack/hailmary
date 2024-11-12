@@ -5,9 +5,9 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import GameTable from '@/components/GameTable';
 import GeneratedPicks from '@/components/GeneratedPicks';
-import { fetchGames } from '@/services/gameService'; // Import fetch function
-import { generateRandomPicks } from '@/utils/generatePicks'; // Utility for random picks
-import { handleSpreadClick, handleUnderOverClick } from '@/utils/gameHandlers';  // Import both handlers
+import { fetchGames } from '@/services/gameService';
+import { generateRandomPicks } from '@/utils/generatePicks';
+import { handleSpreadClick, handleUnderOverClick, handleTeamClick } from '@/utils/gameHandlers'; // Import handleTeamClick
 
 export default function GamesPage() {
   const [games, setGames] = useState([]);
@@ -15,8 +15,7 @@ export default function GamesPage() {
   const [generatedPicks, setGeneratedPicks] = useState([]);
   const [selectedGameId, setSelectedGameId] = useState(null);
   const [currentConfidence, setCurrentConfidence] = useState(50);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state for confidence
-  
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch games data on page load
   useEffect(() => {
@@ -30,15 +29,15 @@ export default function GamesPage() {
 
   // Handle generating picks for the games
   function handleGeneratePicks() {
-    const picks = generateRandomPicks(games);  // Use the utility to generate picks
-    setGeneratedPicks(picks);  // Set the generated picks to the state
+    const picks = generateRandomPicks(games);
+    setGeneratedPicks(picks);
   }
 
   // Handle setting confidence
   function handleConfidenceClick(gameId, confidence) {
-    setSelectedGameId(gameId); // Set the selected game ID
-    setCurrentConfidence(confidence); // Set the current confidence level
-    setIsModalOpen(true); // Open the modal
+    setSelectedGameId(gameId);
+    setCurrentConfidence(confidence);
+    setIsModalOpen(true);
   }
 
   // Handle confidence submit - Save the new confidence value
@@ -59,41 +58,12 @@ export default function GamesPage() {
             game.gameId === selectedGameId ? { ...game, confidence: updatedGame.confidence } : game
           )
         );
-        setIsModalOpen(false); // Close the modal after submit
+        setIsModalOpen(false);
       } else {
         console.error("Failed to update confidence");
       }
     } catch (error) {
       console.error("Error updating confidence:", error);
-    }
-  }
-
-  // Handle team selection
-  async function handleTeamClick(gameId, isHomeTeam) {
-    const winner = isHomeTeam ? 1 : 0;
-    try {
-      const response = await fetch('/api/games/update-winner', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ gameId, winner }),
-      });
-  
-      if (response.ok) {
-        const updatedGame = await response.json();
-        setGames((prevGames) =>
-          prevGames.map((game) =>
-            game.gameId === gameId
-              ? { ...game, winner: updatedGame.winner } // Only update winner
-              : game
-          )
-        );
-      } else {
-        console.error("Failed to update winner");
-      }
-    } catch (error) {
-      console.error("Error updating winner:", error);
     }
   }
 
@@ -116,20 +86,14 @@ export default function GamesPage() {
         <GameTable
           games={games}
           setGames={setGames}
-          handleTeamClick={handleTeamClick}
-          handleUnderOverClick={handleUnderOverClick}  // Use imported function
-          handleSpreadClick={handleSpreadClick} // Pass handleSpreadClick
+          handleTeamClick={handleTeamClick} // Use imported function from gameHandlers
+          handleUnderOverClick={handleUnderOverClick}
+          handleSpreadClick={handleSpreadClick}
           handleConfidenceClick={handleConfidenceClick}
           setSelectedGameId={setSelectedGameId}
           setCurrentConfidence={setCurrentConfidence}
           setIsModalOpen={setIsModalOpen}
         />
-        <button
-            onClick={handleGeneratePicks}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Generate Picks
-          </button>
         <GeneratedPicks generatedPicks={generatedPicks} />
       </main>
 

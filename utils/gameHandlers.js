@@ -23,18 +23,8 @@ export async function handleTeamClick(gameId, isHomeTeam) {
     return null;
   }
 }
-
-
-
-  
-  
-  
-  
-  // Handle Over/Under toggle
-  // gameHandlers.js
-
-// gameHandlers.js
-
+ 
+// Handle Over/Under toggle
 export async function handleUnderOverClick(gameId, currentUnderOver, setGames) {
   // Toggle underover value in the sequence 0 -> 1 -> 2 -> 0
   const newUnderOver = currentUnderOver === 0 ? 1 : currentUnderOver === 1 ? 2 : 0;
@@ -65,15 +55,8 @@ export async function handleUnderOverClick(gameId, currentUnderOver, setGames) {
     console.error("Error updating underover:", error);
   }
 }
-
-
-
-
-
   
-  // Handle Spread toggle
-  // gameHandlers.js
-
+// Handle Spread toggle
 export async function handleSpreadClick(gameId, currentWinspread, setGames) {
   // Toggle winspread value in the order 0 -> 1 -> 2 -> 0
   const newWinspread = currentWinspread === 0 ? 1 : currentWinspread === 1 ? 2 : 0;
@@ -103,11 +86,10 @@ export async function handleSpreadClick(gameId, currentWinspread, setGames) {
   }
 }
 
-  
-  // Handle confidence click
-  export function handleConfidenceClick(gameId, confidence, setSelectedGameId, setCurrentConfidence, setIsModalOpen) {
-    setSelectedGameId(gameId);
-    setCurrentConfidence(confidence);
-    setIsModalOpen(true);
-  }
+// Handle confidence click
+export function handleConfidenceClick(gameId, confidence, setSelectedGameId, setCurrentConfidence, setIsModalOpen) {
+  setSelectedGameId(gameId);
+  setCurrentConfidence(confidence);
+  setIsModalOpen(true);
+}
   
