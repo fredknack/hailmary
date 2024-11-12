@@ -7,7 +7,7 @@ import GameTable from '@/components/GameTable';
 import GeneratedPicks from '@/components/GeneratedPicks';
 import { fetchGames } from '@/services/gameService'; // Import fetch function
 import { generateRandomPicks } from '@/utils/generatePicks'; // Utility for random picks
-import { handleSpreadClick } from '@/utils/gameHandlers';  // Import handleSpreadClick
+import { handleSpreadClick, handleUnderOverClick } from '@/utils/gameHandlers';  // Import both handlers
 
 export default function GamesPage() {
   const [games, setGames] = useState([]);
@@ -68,36 +68,6 @@ export default function GamesPage() {
     }
   }
 
-  // Handle Over/Under toggle
-  async function handleUnderOverClick(gameId, currentValue) {
-    const newUnderOver = currentValue === 1 ? 0 : 1;  // Toggle the value between 0 and 1
-
-    try {
-      const response = await fetch('/api/games/update-underover', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ gameId, underover: newUnderOver }),
-      });
-
-      if (response.ok) {
-        const updatedGame = await response.json();
-        setGames((prevGames) =>
-          prevGames.map((game) =>
-            game.gameId === gameId
-              ? { ...game, underover: updatedGame.underover }
-              : game
-          )
-        );
-      } else {
-        console.error("Failed to update underover");
-      }
-    } catch (error) {
-      console.error("Error updating underover:", error);
-    }
-  }
-
   // Handle team selection
   async function handleTeamClick(gameId, isHomeTeam) {
     const winner = isHomeTeam ? 1 : 0;
@@ -109,31 +79,13 @@ export default function GamesPage() {
         },
         body: JSON.stringify({ gameId, winner }),
       });
-
+  
       if (response.ok) {
         const updatedGame = await response.json();
         setGames((prevGames) =>
           prevGames.map((game) =>
             game.gameId === gameId
-              ? { ...game, winner: updatedGame.winner }
-              : game
-          )
-        );
-
-        // Now update the winspread to 0
-        await fetch('/api/games/update-winspread', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ gameId, winspread: 0 }),
-        });
-
-        // Update the state with the reset winspread value
-        setGames((prevGames) =>
-          prevGames.map((game) =>
-            game.gameId === gameId
-              ? { ...game, winspread: 0 }
+              ? { ...game, winner: updatedGame.winner } // Only update winner
               : game
           )
         );
@@ -165,13 +117,19 @@ export default function GamesPage() {
           games={games}
           setGames={setGames}
           handleTeamClick={handleTeamClick}
-          handleUnderOverClick={handleUnderOverClick}
+          handleUnderOverClick={handleUnderOverClick}  // Use imported function
           handleSpreadClick={handleSpreadClick} // Pass handleSpreadClick
           handleConfidenceClick={handleConfidenceClick}
           setSelectedGameId={setSelectedGameId}
           setCurrentConfidence={setCurrentConfidence}
           setIsModalOpen={setIsModalOpen}
         />
+        <button
+            onClick={handleGeneratePicks}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Generate Picks
+          </button>
         <GeneratedPicks generatedPicks={generatedPicks} />
       </main>
 

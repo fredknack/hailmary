@@ -1,37 +1,37 @@
-// pages/api/games/update-winner.js
 import db from '@/db/db';
 
-
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    const { gameId, winner } = req.body;
-
-    if (winner !== 0 && winner !== 1) {
-      return res.status(400).json({ message: 'Invalid winner value' });
-    }
-
-    try {
-      // Update the winner in the correct table ('season_schedule')
-      const updatedGame = await updateGameWinner(gameId, winner);
-
-      // Return the updated game data
-      res.status(200).json(updatedGame);
-    } catch (error) {
-      console.error("Error updating winner in database:", error);
-      res.status(500).json({ message: 'Failed to update winner', error: error.message });
-    }
-  } else {
-    res.status(405).json({ message: 'Method Not Allowed' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
-}
 
-// Example of the DB update function (adjust it based on your database)
-async function updateGameWinner(gameId, winner) {
+  const { gameId, winner } = req.body;
+  console.log("Received gameId:", gameId, "with winner:", winner); // Log incoming values
+
+  if (winner !== 0 && winner !== 1) {
+    return res.status(400).json({ error: 'Invalid winner value' });
+  }
+
   try {
-    const result = await db.prepare('UPDATE season_schedule SET winner = ? WHERE gameId = ? RETURNING *').run(winner, gameId);
-    return result;
+    const statement = db.prepare(`
+      UPDATE season_schedule 
+      SET winner = ? 
+      WHERE gameId = ?
+    `);
+
+    const result = statement.run(winner, gameId);
+    console.log("Database update result:", result); // Log update result
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Game not found or no changes made' });
+    }
+
+    const updatedGame = db.prepare(`SELECT * FROM season_schedule WHERE gameId = ?`).get(gameId);
+    console.log('Updated game:', updatedGame);
+
+    res.status(200).json(updatedGame);
   } catch (error) {
-    console.error('Error during database update:', error);
-    throw error;  // This will be caught by the catch block in the handler
+    console.error("Error updating winner:", error);
+    res.status(500).json({ error: "Failed to update winner" });
   }
 }

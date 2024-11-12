@@ -11,7 +11,7 @@ export default function Header() {
           <li><a href="#contact" className="hover:text-gray-400">Contact</a></li>
         </ul>
       </nav>
-      <div className="text-2xl font-bold">FredBook</div>
+      <div className="text-2xl font-bold">HailMary!</div>
     </header>
   );
 }

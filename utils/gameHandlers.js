@@ -1,91 +1,108 @@
 // Handle team selection (home/away)
-async function handleTeamClick(gameId, isHomeTeam) {
-    const winner = isHomeTeam ? 1 : 0; // Set winner based on the selected team
-    console.log(`Sending winner ${winner} for gameId ${gameId}`);  // Log for debugging
-  
-    try {
-      const response = await fetch('/api/games/update-winner', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ gameId, winner }), // Send gameId and winner
-      });
-  
-      if (response.ok) {
-        const updatedGame = await response.json();
-        console.log("Updated game data:", updatedGame);  // Log updated game response
-  
-        setGames((prevGames) =>
-          prevGames.map((game) =>
-            game.gameId === gameId
-              ? { ...game, winner: updatedGame.winner }
-              : game
-          )
-        );
-      } else {
-        console.error("Failed to update winner");
-      }
-    } catch (error) {
-      console.error("Error updating winner:", error);
+export async function handleTeamClick(gameId, isHomeTeam) {
+  const winner = isHomeTeam ? 1 : 0;
+  console.log(`Sending gameId ${gameId} and winner ${winner} to API`); // Verify gameId and winner
+
+  try {
+    const response = await fetch('/api/games/update-winner', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameId, winner }),
+    });
+    
+    if (response.ok) {
+      const updatedGame = await response.json();
+      console.log("Updated game response from API:", updatedGame);
+      return updatedGame;
+    } else {
+      console.error("Failed to update winner:", await response.text());
+      return null;
     }
+  } catch (error) {
+    console.error("Error updating winner:", error);
+    return null;
   }
+}
+
+
+
   
   
   
   
   // Handle Over/Under toggle
-  export async function handleUnderOverClick(gameId, currentValue, setGames) {
-    const newUnderOver = currentValue === 1 ? 0 : 1; // Toggle between 1 (OVER) and 0 (UNDER)
-    try {
-      const response = await fetch('/api/games/update-underover', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gameId, underover: newUnderOver }),
-      });
-  
-      if (response.ok) {
-        const updatedGame = await response.json();
-        console.log('Updated game with under/over:', updatedGame); // Logging to confirm the under/over update
-        setGames(prevGames =>
-          prevGames.map(game =>
-            game.gameId === gameId ? { ...game, underover: updatedGame.underover } : game
-          )
-        );
-      } else {
-        console.error('Failed to update under/over');
-      }
-    } catch (error) {
-      console.error('Error updating under/over:', error);
+  // gameHandlers.js
+
+// gameHandlers.js
+
+export async function handleUnderOverClick(gameId, currentUnderOver, setGames) {
+  // Toggle underover value in the sequence 0 -> 1 -> 2 -> 0
+  const newUnderOver = currentUnderOver === 0 ? 1 : currentUnderOver === 1 ? 2 : 0;
+
+  console.log(`Toggling underover for gameId ${gameId}: ${currentUnderOver} -> ${newUnderOver}`);
+
+  try {
+    const response = await fetch('/api/games/update-underover', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameId, underover: newUnderOver }),
+    });
+
+    if (response.ok) {
+      const updatedGame = await response.json();
+      console.log("Updated underover for game:", updatedGame);
+
+      // Update games state with the new underover value only
+      setGames(prevGames =>
+        prevGames.map(game =>
+          game.gameId === gameId ? { ...game, underover: updatedGame.underover } : game
+        )
+      );
+    } else {
+      console.error("Failed to update underover:", await response.text());
     }
+  } catch (error) {
+    console.error("Error updating underover:", error);
   }
+}
+
+
+
+
+
   
   // Handle Spread toggle
-  export async function handleSpreadClick(gameId, currentValue, setGames) {
-    const newWinspread = currentValue === 1 ? 0 : 1; // Toggle between 1 and 0
-    
-    try {
-      const response = await fetch('/api/games/update-winspread', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gameId, winspread: newWinspread }),
-      });
-  
-      if (response.ok) {
-        const updatedGame = await response.json();
-        console.log('Updated winspread for game:', updatedGame); // Log the updated game object
-        setGames(prevGames =>
-          prevGames.map(game =>
-            game.gameId === gameId ? { ...game, winspread: updatedGame.winspread } : game
-          )
-        );
-      } else {
-        console.error('Failed to update winspread');
-      }
-    } catch (error) {
-      console.error('Error updating winspread:', error);
+  // gameHandlers.js
+
+export async function handleSpreadClick(gameId, currentWinspread, setGames) {
+  // Toggle winspread value in the order 0 -> 1 -> 2 -> 0
+  const newWinspread = currentWinspread === 0 ? 1 : currentWinspread === 1 ? 2 : 0;
+
+  try {
+    const response = await fetch('/api/games/update-winspread', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameId, winspread: newWinspread }),
+    });
+
+    if (response.ok) {
+      const updatedGame = await response.json();
+      console.log('Updated winspread for game:', updatedGame); // Log the updated game object
+
+      // Update the games state to reflect the new winspread
+      setGames(prevGames =>
+        prevGames.map(game =>
+          game.gameId === gameId ? { ...game, winspread: updatedGame.winspread } : game
+        )
+      );
+    } else {
+      console.error('Failed to update winspread');
     }
+  } catch (error) {
+    console.error('Error updating winspread:', error);
   }
+}
+
   
   // Handle confidence click
   export function handleConfidenceClick(gameId, confidence, setSelectedGameId, setCurrentConfidence, setIsModalOpen) {
