@@ -86,10 +86,37 @@ export async function handleSpreadClick(gameId, currentWinspread, setGames) {
   }
 }
 
-// Handle confidence click
+// Handle setting confidence
 export function handleConfidenceClick(gameId, confidence, setSelectedGameId, setCurrentConfidence, setIsModalOpen) {
   setSelectedGameId(gameId);
   setCurrentConfidence(confidence);
   setIsModalOpen(true);
+}
+
+// Handle confidence submit - Save the new confidence value
+export async function handleConfidenceSubmit(selectedGameId, currentConfidence, setGames, setIsModalOpen) {
+  try {
+    const response = await fetch('/api/games/update-confidence', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ gameId: selectedGameId, confidence: currentConfidence }),
+    });
+
+    if (response.ok) {
+      const updatedGame = await response.json();
+      setGames((prevGames) =>
+        prevGames.map((game) =>
+          game.gameId === selectedGameId ? { ...game, confidence: updatedGame.confidence } : game
+        )
+      );
+      setIsModalOpen(false); // Close the modal after submitting
+    } else {
+      console.error("Failed to update confidence");
+    }
+  } catch (error) {
+    console.error("Error updating confidence:", error);
+  }
 }
   

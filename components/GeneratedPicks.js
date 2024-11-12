@@ -1,4 +1,3 @@
-// components/GeneratedPicks.js
 export default function GeneratedPicks({ generatedPicks }) {
   if (!generatedPicks.length) return null;
 

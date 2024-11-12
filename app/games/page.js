@@ -1,5 +1,4 @@
-// games/page.js
-"use client";  // Add this at the top to mark this as a client component
+"use client";  
 
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
@@ -7,7 +6,7 @@ import GameTable from '@/components/GameTable';
 import GeneratedPicks from '@/components/GeneratedPicks';
 import { fetchGames } from '@/services/gameService';
 import { generateRandomPicks } from '@/utils/generatePicks';
-import { handleSpreadClick, handleUnderOverClick, handleTeamClick } from '@/utils/gameHandlers'; // Import handleTeamClick
+import { handleSpreadClick, handleUnderOverClick, handleTeamClick, handleConfidenceClick, handleConfidenceSubmit } from '@/utils/gameHandlers';
 
 export default function GamesPage() {
   const [games, setGames] = useState([]);
@@ -33,40 +32,6 @@ export default function GamesPage() {
     setGeneratedPicks(picks);
   }
 
-  // Handle setting confidence
-  function handleConfidenceClick(gameId, confidence) {
-    setSelectedGameId(gameId);
-    setCurrentConfidence(confidence);
-    setIsModalOpen(true);
-  }
-
-  // Handle confidence submit - Save the new confidence value
-  async function handleConfidenceSubmit() {
-    try {
-      const response = await fetch('/api/games/update-confidence', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ gameId: selectedGameId, confidence: currentConfidence }),
-      });
-
-      if (response.ok) {
-        const updatedGame = await response.json();
-        setGames((prevGames) =>
-          prevGames.map((game) =>
-            game.gameId === selectedGameId ? { ...game, confidence: updatedGame.confidence } : game
-          )
-        );
-        setIsModalOpen(false);
-      } else {
-        console.error("Failed to update confidence");
-      }
-    } catch (error) {
-      console.error("Error updating confidence:", error);
-    }
-  }
-
   if (loading) return <p>Loading games...</p>;
 
   return (
@@ -86,10 +51,10 @@ export default function GamesPage() {
         <GameTable
           games={games}
           setGames={setGames}
-          handleTeamClick={handleTeamClick} // Use imported function from gameHandlers
+          handleTeamClick={handleTeamClick}
           handleUnderOverClick={handleUnderOverClick}
           handleSpreadClick={handleSpreadClick}
-          handleConfidenceClick={handleConfidenceClick}
+          handleConfidenceClick={(gameId, confidence) => handleConfidenceClick(gameId, confidence, setSelectedGameId, setCurrentConfidence, setIsModalOpen)}
           setSelectedGameId={setSelectedGameId}
           setCurrentConfidence={setCurrentConfidence}
           setIsModalOpen={setIsModalOpen}
@@ -112,7 +77,7 @@ export default function GamesPage() {
               className="w-full mb-4"
             />
             <button
-              onClick={handleConfidenceSubmit}
+              onClick={() => handleConfidenceSubmit(selectedGameId, currentConfidence, setGames, setIsModalOpen)}
               className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
               Submit

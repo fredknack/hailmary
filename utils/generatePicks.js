@@ -1,5 +1,3 @@
-// utils/generatePicks.js
-
 export function generateRandomPicks(games) {
   return games.map((game) => {
     // Determine the current winner based on the `winner` field
